@@ -1,10 +1,13 @@
-# AI-Based College Complaint Management & Priority System
+# 🏛️ CollegeCare AI: AI-Based College Complaint Management & Priority System
 
-A full-stack, AI-powered campus grievance resolution platform built with **Flask**, **Scikit-learn (NLP)**, **SQLite**, and **Chart.js**.
+A full-stack, AI-powered campus grievance resolution platform built with **Flask**, **Scikit-learn (NLP)**, **Firebase Cloud Firestore**, **Firebase Authentication (Google Sign-In)**, **SQLite**, and **Chart.js**.
+
+**🌐 Live Cloud URL:** [https://collegecare-ai.onrender.com](https://collegecare-ai.onrender.com)  
+**📘 Complete Academic Documentation:** See [DOCUMENTATION.md](DOCUMENTATION.md) for full system architecture, algorithms, and viva defense guide.
 
 ---
 
-## 🌟 Key Capabilities (Aligned with Specification)
+## 🌟 Key Capabilities (Aligned with Institutional Specifications)
 
 ### 1. Complaint Categorization (NLP)
 * Utilizes **TF-IDF Vectorization** and **Logistic Regression** trained on campus-specific grievance scenarios.
