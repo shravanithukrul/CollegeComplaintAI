@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}Register Account • CollegeCare AI{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card-classy p-4 p-md-5 bg-white">
+                <div class="text-center mb-4">
+                    <div class="crest-badge mx-auto mb-3" style="width: 54px; height: 54px; font-size: 1.4rem;">
+                        <i class="fa-solid fa-user-plus"></i>
+                    </div>
+                    <span class="stat-caption">Institutional Register</span>
+                    <h3 class="fw-bold font-serif text-dark mt-1 mb-1">Create Account</h3>
+                    <p class="text-secondary small">
+                        Register as a student or campus member to track your lodged complaints and receive administrative updates.
+                    </p>
+                    <div style="width: 36px; height: 2px; background: var(--champagne); margin: 10px auto;"></div>
+                </div>
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                        <div class="alert alert-{{ category if category != 'error' else 'danger' }} py-2 px-3 small mb-3 border" role="alert">
+                            <i class="fa-solid fa-circle-info me-1"></i> {{ message }}
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <form method="POST" action="/register{% if next_url %}?next={{ next_url }}{% endif %}">
+                    <!-- Full Name -->
+                    <div class="mb-3">
+                        <label for="full_name" class="form-label fw-bold small text-secondary">
+                            Full Name
+                        </label>
+                        <input type="text" class="form-control" id="full_name" name="full_name" 
+                               placeholder="e.g. Priya Patel" required autofocus>
+                    </div>
+
+                    <!-- Username -->
+                    <div class="mb-3">
+                        <label for="username" class="form-label fw-bold small text-secondary">
+                            Desired Username
+                        </label>
+                        <input type="text" class="form-control" id="username" name="username" 
+                               placeholder="e.g. priya_patel" required>
+                    </div>
+
+                    <!-- Campus Role -->
+                    <div class="mb-3">
+                        <label for="role" class="form-label fw-bold small text-secondary">
+                            Campus Designation
+                        </label>
+                        <select class="form-select" id="role" name="role">
+                            <option value="student" selected>Student</option>
+                            <option value="faculty">Faculty / Department Staff</option>
+                        </select>
+                    </div>
+
+                    <!-- Password -->
+                    <div class="mb-4">
+                        <label for="password" class="form-label fw-bold small text-secondary">
+                            Password
+                        </label>
+                        <input type="password" class="form-control" id="password" name="password" 
+                               placeholder="Create a secure password (min 6 characters)" required minlength="6">
+                    </div>
+
+                    <!-- Action Button -->
+                    <div class="d-grid mb-3">
+                        <button type="submit" class="btn-classy-primary py-2 fs-6">
+                            <i class="fa-solid fa-user-check me-1"></i>
+                            <span>Complete Registration</span>
+                        </button>
+                    </div>
+
+                    <!-- Link to Login -->
+                    <div class="text-center small text-secondary">
+                        Already have an account? 
+                        <a href="/login{% if next_url %}?next={{ next_url }}{% endif %}" class="fw-bold text-dark text-decoration-none" style="border-bottom: 1px dotted var(--champagne);">
+                            Sign In Here
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

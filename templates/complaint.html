@@ -1,0 +1,243 @@
+{% extends 'base.html' %}
+
+{% block title %}Lodge Campus Grievance • CollegeCare AI{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card-classy p-4 p-md-5 bg-white">
+                <div class="text-center mb-4">
+                    <span class="stat-caption">Official Form</span>
+                    <h2 class="fw-bold mt-1 mb-2">Lodge Campus Grievance</h2>
+                    <p class="text-secondary small">
+                        Please provide detailed observations regarding the facility or equipment issue. The AI governance model will categorize the report and evaluate priority level instantly.
+                    </p>
+                    <div style="width: 36px; height: 2px; background: var(--champagne); margin: 12px auto;"></div>
+                </div>
+
+                {% if error %}
+                <div class="alert alert-danger py-2 px-3 small mb-4" role="alert">
+                    <i class="fa-solid fa-circle-exclamation me-1"></i> {{ error }}
+                </div>
+                {% endif %}
+
+                <form method="POST" action="/complaint" enctype="multipart/form-data" id="complaintForm">
+                    <!-- Student Identity -->
+                    <div class="mb-4">
+                        <label for="name" class="form-label fw-bold small text-secondary">
+                            Student / Faculty Name & Identification
+                        </label>
+                        <input type="text" class="form-control" id="name" name="name" 
+                               placeholder="e.g. Rahul Sharma (PRN: 20240182)" value="{{ default_name or '' }}" required>
+                        <div class="form-text small text-muted mt-1">
+                            <i class="fa-solid fa-user-shield text-success me-1"></i> 
+                            <strong>Strict Privacy:</strong> Your name and ID are confidential. Only you and campus administrators will be able to see who filed this report.
+                        </div>
+                    </div>
+
+                    <!-- Campus Location -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label for="location" class="form-label fw-bold small text-secondary mb-0">
+                                Campus Location / Room
+                            </label>
+                            <span class="text-muted small" style="font-size: 0.75rem;">Quick Select:</span>
+                        </div>
+                        <input type="text" class="form-control mb-2" id="location" name="location" list="locationOptions" 
+                               placeholder="Specify room number, laboratory, or building wing..." required>
+                        <datalist id="locationOptions">
+                            <option value="Room 115">
+                            <option value="Room 204">
+                            <option value="Computer Lab 1">
+                            <option value="Computer Lab 2">
+                            <option value="Electronics Lab">
+                            <option value="Central Library">
+                            <option value="College Canteen">
+                            <option value="Main Building 2nd Floor Washroom">
+                        </datalist>
+
+                        <!-- Quick Location Chips -->
+                        <div class="d-flex flex-wrap gap-2 pt-1">
+                            <span class="pill-chip" onclick="setLocation('Room 115')">Room 115</span>
+                            <span class="pill-chip" onclick="setLocation('Room 204')">Room 204</span>
+                            <span class="pill-chip" onclick="setLocation('Computer Lab 1')">Computer Lab 1</span>
+                            <span class="pill-chip" onclick="setLocation('Central Library')">Central Library</span>
+                            <span class="pill-chip" onclick="setLocation('College Canteen')">Dining Hall / Canteen</span>
+                            <span class="pill-chip" onclick="setLocation('Main Building 2nd Floor Washroom')">2nd Floor Restroom</span>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="mb-3">
+                        <label for="description" class="form-label fw-bold small text-secondary">
+                            Grievance Details
+                        </label>
+                        <textarea class="form-control" id="description" name="description" rows="4" 
+                                  placeholder="Provide an objective description of the equipment malfunction, safety issue, or maintenance need..." required></textarea>
+                    </div>
+
+                    <!-- Classy AI Live Triage Box -->
+                    <div id="aiPreviewBox" class="ai-classy-box mb-4">
+                        <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="crest-badge" style="width: 22px; height: 22px; font-size: 0.7rem;">
+                                    <i class="fa-solid fa-microchip"></i>
+                                </span>
+                                <strong class="small text-dark font-serif">AI Real-Time Triage Assessment</strong>
+                            </div>
+                            <span id="aiBadge" class="badge-classy-category">Evaluating...</span>
+                        </div>
+
+                        <div class="row g-2 mb-2">
+                            <div class="col-md-4">
+                                <div class="bg-white p-2 rounded border small">
+                                    <span class="text-muted d-block" style="font-size: 0.72rem;">Category:</span>
+                                    <strong id="aiCategory" class="text-dark">-</strong>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="bg-white p-2 rounded border small">
+                                    <span class="text-muted d-block" style="font-size: 0.72rem;">Assessed Urgency:</span>
+                                    <strong id="aiPriority" class="text-dark">-</strong>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="bg-white p-2 rounded border small">
+                                    <span class="text-muted d-block" style="font-size: 0.72rem;">Assigned Department:</span>
+                                    <strong id="aiDepartment" class="text-dark">-</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="aiPriorityReason" class="text-muted small fst-italic px-1"></div>
+
+                        <!-- Duplicate Match Alert -->
+                        <div id="aiSimilarWarning" class="alert alert-warning py-2 px-3 small mt-3 mb-0 d-none border-warning-subtle">
+                            <div class="d-flex align-items-start gap-2">
+                                <i class="fa-solid fa-clone text-dark mt-1"></i>
+                                <div>
+                                    <strong class="text-dark">Duplicate Correlation Detected:</strong>
+                                    <div id="aiSimilarText" class="mt-1"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Photographic Evidence -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-secondary">
+                            Photographic Evidence (Optional)
+                        </label>
+                        <div class="border rounded p-3 text-center bg-light" style="cursor: pointer; border-style: dashed !important;" onclick="document.getElementById('image').click();">
+                            <i class="fa-solid fa-camera text-muted fs-4 mb-2"></i>
+                            <div class="small fw-semibold text-dark">Click to attach photo evidence</div>
+                            <div class="text-muted" style="font-size: 0.75rem;">PNG, JPG, or WEBP (Up to 16MB)</div>
+                            <div id="fileNamePreview" class="badge bg-secondary text-white mt-2 d-none"></div>
+                        </div>
+                        <input class="d-none" type="file" id="image" name="image" accept="image/*" onchange="previewFile(this)">
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex flex-column gap-2 pt-2">
+                        <button type="submit" class="btn-classy-primary w-100 py-3">
+                            <i class="fa-solid fa-paper-plane me-1"></i>
+                            <span>Submit Official Grievance</span>
+                        </button>
+                        <a href="/" class="btn btn-link text-decoration-none text-muted small text-center mt-2">
+                            <i class="fa-solid fa-arrow-left me-1"></i> Return to Campus Protocol
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function setLocation(val) {
+        document.getElementById('location').value = val;
+        fetchAIPreview();
+    }
+
+    function previewFile(input) {
+        const preview = document.getElementById('fileNamePreview');
+        if (input.files && input.files[0]) {
+            preview.textContent = 'Attached: ' + input.files[0].name;
+            preview.classList.remove('d-none');
+        } else {
+            preview.classList.add('d-none');
+        }
+    }
+
+    const descInput = document.getElementById('description');
+    const locInput = document.getElementById('location');
+    const previewBox = document.getElementById('aiPreviewBox');
+    const aiCategory = document.getElementById('aiCategory');
+    const aiPriority = document.getElementById('aiPriority');
+    const aiDepartment = document.getElementById('aiDepartment');
+    const aiPriorityReason = document.getElementById('aiPriorityReason');
+    const aiBadge = document.getElementById('aiBadge');
+    const aiSimilarWarning = document.getElementById('aiSimilarWarning');
+    const aiSimilarText = document.getElementById('aiSimilarText');
+
+    let debounceTimer;
+
+    function fetchAIPreview() {
+        const desc = descInput.value.trim();
+        const loc = locInput.value.trim();
+
+        if (desc.length < 5) {
+            previewBox.style.display = 'none';
+            return;
+        }
+
+        previewBox.style.display = 'block';
+        aiBadge.textContent = 'Computing...';
+
+        fetch('/api/preview', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ description: desc, location: loc })
+        })
+        .then(res => res.json())
+        .then(data => {
+            aiCategory.textContent = data.category;
+            aiPriority.textContent = data.priority;
+            aiDepartment.textContent = data.department;
+            aiPriorityReason.textContent = data.priority_reason;
+
+            if (data.priority === 'High') {
+                aiBadge.className = 'badge-classy-urgent';
+                aiBadge.innerHTML = '<i class="fa-solid fa-shield-halved"></i> High Priority';
+            } else if (data.priority === 'Medium') {
+                aiBadge.className = 'badge-classy-medium';
+                aiBadge.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Medium Priority';
+            } else {
+                aiBadge.className = 'badge-classy-low';
+                aiBadge.innerHTML = '<i class="fa-solid fa-circle-info"></i> Low Priority';
+            }
+
+            if (data.similar) {
+                aiSimilarWarning.classList.remove('d-none');
+                aiSimilarText.innerHTML = `Correlated with <strong>Ticket #${data.similar.matched_id}</strong> (<em>"${data.similar.matched_description}"</em>). Submitting will merge your report to elevate priority.`;
+            } else {
+                aiSimilarWarning.classList.add('d-none');
+            }
+        })
+        .catch(err => console.error('AI preview error:', err));
+    }
+
+    descInput.addEventListener('input', () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(fetchAIPreview, 350);
+    });
+
+    locInput.addEventListener('input', () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(fetchAIPreview, 500);
+    });
+</script>
+{% endblock %}

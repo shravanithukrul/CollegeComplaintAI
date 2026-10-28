@@ -1,0 +1,481 @@
+{% extends 'base.html' %}
+
+{% block title %}Administrative Board • CollegeCare AI{% endblock %}
+
+{% block head %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-5 py-4">
+    <!-- Top Administrative Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-2 border-bottom gap-3">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="stat-caption" style="color: var(--champagne);">Campus Facilities Oversight</span>
+                <span class="text-muted">•</span>
+                <span class="small text-secondary">AI Governance Terminal</span>
+            </div>
+            <h2 class="fw-bold text-dark mb-0 font-serif">
+                Campus Complaints Administrative Board
+            </h2>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="/complaint" class="btn-classy-outline text-decoration-none py-2 px-3 small">
+                <i class="fa-solid fa-plus me-1 text-secondary"></i> Lodge Test Record
+            </a>
+            <button class="btn-classy-primary py-2 px-3 small" onclick="window.location.reload();">
+                <i class="fa-solid fa-arrows-rotate me-1"></i> Refresh Board
+            </button>
+        </div>
+    </div>
+
+    <!-- Recurring Issues Alert Banner -->
+    {% if recurring_hotspots %}
+    <div class="card p-3 mb-4 rounded border-0 shadow-sm" style="background: #FEF2F2; border-left: 4px solid var(--status-urgent) !important;">
+        <div class="d-flex align-items-start gap-3">
+            <div class="text-danger fs-4 mt-1">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div class="flex-grow-1">
+                <h6 class="font-serif fw-bold text-danger mb-1">Chronic Breakdown Notice: Facility Hotspots Flagged</h6>
+                <p class="small mb-2 text-secondary">
+                    Historical analytics indicate repetitive grievances at the following campus facilities. Recommend permanent infrastructure overhaul rather than temporary repairs:
+                </p>
+                <div class="d-flex flex-wrap gap-2">
+                    {% for h in recurring_hotspots %}
+                    <span class="badge bg-white text-danger border border-danger-subtle px-3 py-1 font-monospace small">
+                        <i class="fa-solid fa-location-dot me-1"></i> {{ h['location'] }} ({{ h['count'] }} reports - {{ h['category'] }})
+                    </span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 6 Executive Stat Metric Boxes -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-md-4 col-xl-2">
+            <div class="stat-box">
+                <div class="stat-caption">Total In Register</div>
+                <div class="stat-number">{{ stats.total }}</div>
+                <small class="text-muted">Campus Tickets</small>
+            </div>
+        </div>
+        <div class="col-sm-6 col-md-4 col-xl-2">
+            <div class="stat-box">
+                <div class="stat-caption">Pending Review</div>
+                <div class="stat-number text-secondary">{{ stats.pending }}</div>
+                <small class="text-muted">Unassigned Cases</small>
+            </div>
+        </div>
+        <div class="col-sm-6 col-md-4 col-xl-2">
+            <div class="stat-box stat-gold">
+                <div class="stat-caption" style="color: var(--status-medium);">In Progress</div>
+                <div class="stat-number" style="color: var(--status-medium);">{{ stats.in_progress }}</div>
+                <small class="text-muted">Active Work</small>
+            </div>
+        </div>
+        <div class="col-sm-6 col-md-4 col-xl-2">
+            <div class="stat-box stat-green">
+                <div class="stat-caption" style="color: var(--status-resolved);">Resolved</div>
+                <div class="stat-number" style="color: var(--status-resolved);">{{ stats.resolved }}</div>
+                <small class="text-muted">Closed Cases</small>
+            </div>
+        </div>
+        <div class="col-sm-6 col-md-4 col-xl-2">
+            <div class="stat-box stat-crimson">
+                <div class="stat-caption text-danger">High Priority</div>
+                <div class="stat-number text-danger">{{ stats.urgent }}</div>
+                <small class="text-danger">Urgent Action</small>
+            </div>
+        </div>
+        <div class="col-sm-6 col-md-4 col-xl-2">
+            <div class="stat-box stat-crimson" style="background: #FFFBFB;">
+                <div class="stat-caption text-danger">Chronic Hotspots</div>
+                <div class="stat-number text-danger">{{ stats.recurring }}</div>
+                <small class="text-danger">Facility Audit</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Classy Visualizations Row (Chart.js) -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-4">
+            <div class="card-classy p-4 bg-white h-100">
+                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                    <span class="font-serif fw-bold text-dark small">Grievances by Category</span>
+                    <span class="stat-caption">NLP Model</span>
+                </div>
+                <div style="height: 240px; position: relative;">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card-classy p-4 bg-white h-100">
+                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                    <span class="font-serif fw-bold text-dark small">Priority & Urgency Ratio</span>
+                    <span class="stat-caption">Urgency Engine</span>
+                </div>
+                <div style="height: 240px; position: relative;">
+                    <canvas id="priorityChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card-classy p-4 bg-white h-100">
+                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                    <span class="font-serif fw-bold text-dark small">Facility Hotspot Frequency</span>
+                    <span class="stat-caption">Location Log</span>
+                </div>
+                <div style="height: 240px; position: relative;">
+                    <canvas id="locationChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Master Registry Card -->
+    <div class="card-classy bg-white">
+        <div class="p-3 border-bottom d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <h5 class="fw-bold font-serif text-dark mb-0">Master Grievance Register</h5>
+                <span class="text-muted small">Cataloging {{ complaints|length }} institutional reports</span>
+            </div>
+
+            <!-- Filters -->
+            <form method="GET" action="/admin" class="d-flex flex-wrap gap-2">
+                <input type="text" name="q" class="form-control form-control-sm" placeholder="Filter query, name, room..." value="{{ filter_q or '' }}" style="width: 220px;">
+                <select name="status" class="form-select form-select-sm" style="width: 140px;" onchange="this.form.submit()">
+                    <option value="">All Statuses</option>
+                    <option value="Pending" {% if filter_status == 'Pending' %}selected{% endif %}>Pending</option>
+                    <option value="In Progress" {% if filter_status == 'In Progress' %}selected{% endif %}>In Progress</option>
+                    <option value="Resolved" {% if filter_status == 'Resolved' %}selected{% endif %}>Resolved</option>
+                </select>
+
+                <select name="priority" class="form-select form-select-sm" style="width: 140px;" onchange="this.form.submit()">
+                    <option value="">All Priorities</option>
+                    <option value="High" {% if filter_priority == 'High' %}selected{% endif %}>High Priority</option>
+                    <option value="Medium" {% if filter_priority == 'Medium' %}selected{% endif %}>Medium Priority</option>
+                    <option value="Low" {% if filter_priority == 'Low' %}selected{% endif %}>Low Priority</option>
+                </select>
+
+                <button type="submit" class="btn btn-sm btn-dark px-3">Filter</button>
+                {% if filter_q or filter_status or filter_priority %}
+                <a href="/admin" class="btn btn-sm btn-outline-secondary">Reset</a>
+                {% endif %}
+            </form>
+        </div>
+
+        <!-- Classy Table -->
+        <div class="table-responsive">
+            <table class="table-classy">
+                <thead>
+                    <tr>
+                        <th style="width: 70px;">Ref #</th>
+                        <th>Student & Location</th>
+                        <th>Domain / Category</th>
+                        <th>Urgency</th>
+                        <th>Grievance Statement</th>
+                        <th>Duplicate Correlation</th>
+                        <th>Status</th>
+                        <th>Assigned Department</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="small">
+                    {% for c in complaints %}
+                    <tr>
+                        <td>
+                            <strong class="font-monospace text-dark">#{{ c['id'] }}</strong>
+                        </td>
+                        <td>
+                            <div class="fw-bold text-dark">{{ c['name'] }}</div>
+                            <div class="text-secondary small">
+                                <i class="fa-solid fa-location-dot me-1 text-danger"></i> {{ c['location'] }}
+                            </div>
+                            <div class="text-muted" style="font-size: 0.7rem;">
+                                {{ c['created_at'] }}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge-classy-category">
+                                {{ c['category'] }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if c['priority'] == 'High' %}
+                            <span class="badge-classy-urgent">High</span>
+                            {% elif c['priority'] == 'Medium' %}
+                            <span class="badge-classy-medium">Medium</span>
+                            {% else %}
+                            <span class="badge-classy-low">Low</span>
+                            {% endif %}
+                            {% if c['priority_reason'] %}
+                            <div class="text-muted mt-1" style="font-size: 0.7rem; max-width: 130px; line-height: 1.2;">
+                                {{ c['priority_reason'] }}
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td style="max-width: 250px;">
+                            <div class="text-truncate text-dark font-serif" title="{{ c['description'] }}">
+                                {{ c['description'] }}
+                            </div>
+                            <div class="d-flex flex-wrap gap-1 mt-1">
+                                {% if c['image_path'] %}
+                                <a href="{{ url_for('static', filename='uploads/' + c['image_path']) }}" target="_blank" class="badge bg-light text-dark border text-decoration-none">
+                                    <i class="fa-solid fa-camera me-1"></i> Exhibit
+                                </a>
+                                {% endif %}
+                                {% if c['is_recurring'] %}
+                                <span class="badge-classy-recurring">
+                                    <i class="fa-solid fa-arrows-rotate"></i> Recurring
+                                </span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            {% if c['related_count'] and c['related_count'] > 1 %}
+                            <span class="badge-classy-duplicate">
+                                <i class="fa-solid fa-users"></i> {{ c['related_count'] }} Reports
+                            </span>
+                            <div class="text-muted" style="font-size: 0.68rem; margin-top: 2px;">Merged Case</div>
+                            {% else %}
+                            <span class="text-muted small">1 report</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if c['status'] == 'Resolved' %}
+                            <span class="badge-classy-resolved">Resolved</span>
+                            {% elif c['status'] == 'In Progress' %}
+                            <span class="badge-classy-medium">In Progress</span>
+                            {% else %}
+                            <span class="badge bg-light text-secondary border">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="fw-semibold text-dark small">
+                                {{ c['department'] or 'Administration' }}
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            <button type="button" class="btn btn-sm btn-outline-dark" data-bs-toggle="modal" data-bs-target="#editModal{{ c['id'] }}">
+                                Manage
+                            </button>
+
+                            <!-- Modal -->
+                            <div class="modal fade text-start" id="editModal{{ c['id'] }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content rounded border shadow">
+                                        <form action="/update_status/{{ c['id'] }}" method="POST">
+                                            <div class="modal-header border-bottom">
+                                                <h6 class="modal-title font-serif fw-bold text-dark">Administrative Action • Record #{{ c['id'] }}</h6>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="mb-3 bg-light p-3 rounded small border">
+                                                    <div class="fw-bold text-dark mb-1">{{ c['name'] }} • {{ c['location'] }}</div>
+                                                    <em class="font-serif">"{{ c['description'] }}"</em>
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-bold small text-secondary">Resolution Status</label>
+                                                    <select name="status" class="form-select form-select-sm">
+                                                        <option value="Pending" {% if c['status'] == 'Pending' %}selected{% endif %}>Pending Review</option>
+                                                        <option value="In Progress" {% if c['status'] == 'In Progress' %}selected{% endif %}>In Progress</option>
+                                                        <option value="Resolved" {% if c['status'] == 'Resolved' %}selected{% endif %}>Resolved</option>
+                                                    </select>
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-bold small text-secondary">Assign Department</label>
+                                                    <select name="department" class="form-select form-select-sm">
+                                                        <option value="IT Support & Computing Systems" {% if c['department'] == 'IT Support & Computing Systems' %}selected{% endif %}>IT Support & Computing Systems</option>
+                                                        <option value="Electrical & Maintenance Dept" {% if c['department'] == 'Electrical & Maintenance Dept' %}selected{% endif %}>Electrical & Maintenance Dept</option>
+                                                        <option value="Estate & Campus Facilities" {% if c['department'] == 'Estate & Campus Facilities' %}selected{% endif %}>Estate & Campus Facilities</option>
+                                                        <option value="Housekeeping & Sanitation" {% if c['department'] == 'Housekeeping & Sanitation' %}selected{% endif %}>Housekeeping & Sanitation</option>
+                                                        <option value="Plumbing & Water Services" {% if c['department'] == 'Plumbing & Water Services' %}selected{% endif %}>Plumbing & Water Services</option>
+                                                        <option value="Civil Works & Infrastructure" {% if c['department'] == 'Civil Works & Infrastructure' %}selected{% endif %}>Civil Works & Infrastructure</option>
+                                                        <option value="Academic Affairs & Dean Office" {% if c['department'] == 'Academic Affairs & Dean Office' %}selected{% endif %}>Academic Affairs & Dean Office</option>
+                                                        <option value="General Administration" {% if c['department'] == 'General Administration' %}selected{% endif %}>General Administration</option>
+                                                    </select>
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-bold small text-secondary">Priority Level</label>
+                                                    <select name="priority" class="form-select form-select-sm">
+                                                        <option value="High" {% if c['priority'] == 'High' %}selected{% endif %}>High Priority</option>
+                                                        <option value="Medium" {% if c['priority'] == 'Medium' %}selected{% endif %}>Medium Priority</option>
+                                                        <option value="Low" {% if c['priority'] == 'Low' %}selected{% endif %}>Low Priority</option>
+                                                    </select>
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-bold small text-secondary">Resolution Remarks Memo</label>
+                                                    <textarea name="remarks" class="form-control form-control-sm" rows="3" placeholder="Enter resolution notes, contractor status, or student notice...">{{ c['admin_remarks'] or '' }}</textarea>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer border-top">
+                                                <button type="button" class="btn btn-sm btn-light border" data-bs-dismiss="modal">Cancel</button>
+                                                <button type="submit" class="btn btn-sm btn-classy-primary px-3">Save Directive</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="9" class="text-center py-5 text-muted">
+                            <i class="fa-solid fa-folder-open fs-3 mb-2 d-block text-muted"></i>
+                            No complaints matched the criteria.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let catChart, prioChart, locChart;
+
+    function renderCharts(isDark) {
+        const gridColor = isDark ? '#1E2B45' : '#F1EFEA';
+        const textColor = isDark ? '#94A3B8' : '#57534E';
+        const borderColor = isDark ? '#0F172A' : '#FFFFFF';
+
+        fetch('/api/analytics')
+            .then(res => res.json())
+            .then(data => {
+                // Destroy previous instances if re-rendering on theme toggle
+                if (catChart) catChart.destroy();
+                if (prioChart) prioChart.destroy();
+                if (locChart) locChart.destroy();
+
+                // Category Chart (Doughnut)
+                const catCtx = document.getElementById('categoryChart').getContext('2d');
+                catChart = new Chart(catCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: data.categories.labels,
+                        datasets: [{
+                            data: data.categories.data,
+                            backgroundColor: [
+                                isDark ? '#D4AF37' : '#0A192F',
+                                isDark ? '#60A5FA' : '#C5A880',
+                                isDark ? '#34D399' : '#1E3A8A',
+                                isDark ? '#FBBF24' : '#854D0E',
+                                isDark ? '#A78BFA' : '#14532D',
+                                isDark ? '#94A3B8' : '#78716C',
+                                isDark ? '#F87171' : '#991B1B',
+                                isDark ? '#38BDF8' : '#334155'
+                            ],
+                            borderWidth: 2,
+                            borderColor: borderColor
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '72%',
+                        plugins: {
+                            legend: { 
+                                position: 'bottom', 
+                                labels: { 
+                                    boxWidth: 8, 
+                                    color: textColor,
+                                    font: { size: 9, family: 'Plus Jakarta Sans' } 
+                                } 
+                            }
+                        }
+                    }
+                });
+
+                // Priority Chart (Bar)
+                const prioCtx = document.getElementById('priorityChart').getContext('2d');
+                prioChart = new Chart(prioCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['High', 'Medium', 'Low'],
+                        datasets: [{
+                            label: 'Tickets',
+                            data: [data.priority.high, data.priority.medium, data.priority.low],
+                            backgroundColor: [
+                                isDark ? '#F87171' : '#991B1B',
+                                isDark ? '#FBBF24' : '#854D0E',
+                                isDark ? '#60A5FA' : '#1E3A8A'
+                            ],
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: { 
+                                beginAtZero: true, 
+                                grid: { color: gridColor }, 
+                                ticks: { precision: 0, color: textColor } 
+                            },
+                            x: { 
+                                grid: { display: false }, 
+                                ticks: { color: textColor } 
+                            }
+                        },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+
+                // Location Hotspots Chart
+                const locCtx = document.getElementById('locationChart').getContext('2d');
+                locChart = new Chart(locCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.locations.labels.length ? data.locations.labels : ['No Data'],
+                        datasets: [{
+                            label: 'Reports',
+                            data: data.locations.data.length ? data.locations.data : [0],
+                            backgroundColor: isDark ? '#D4AF37' : '#C5A880',
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: { 
+                                beginAtZero: true, 
+                                grid: { color: gridColor }, 
+                                ticks: { precision: 0, color: textColor } 
+                            },
+                            y: { 
+                                grid: { display: false }, 
+                                ticks: { color: textColor } 
+                            }
+                        },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            })
+            .catch(err => console.error('Error loading charts:', err));
+    }
+
+    // Initial render
+    const initialTheme = document.documentElement.getAttribute('data-theme') === 'dark';
+    renderCharts(initialTheme);
+
+    // Re-render charts with correct color contrast when theme toggles
+    window.addEventListener('themeChanged', (e) => {
+        renderCharts(e.detail.theme === 'dark');
+    });
+</script>
+{% endblock %}

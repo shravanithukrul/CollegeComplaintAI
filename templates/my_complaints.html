@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}My Grievances • CollegeCare AI{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-2 border-bottom gap-3">
+        <div>
+            <span class="stat-caption">Student Portal</span>
+            <h2 class="fw-bold font-serif text-dark mb-0">My Lodged Grievances</h2>
+            <p class="text-secondary small mb-0">Review status updates and resolution remarks for issues logged under your account.</p>
+        </div>
+        <a href="/complaint" class="btn-classy-primary text-decoration-none">
+            <i class="fa-solid fa-plus me-1"></i> File New Grievance
+        </a>
+    </div>
+
+    {% if complaints %}
+    <div class="row g-4">
+        {% for c in complaints %}
+        <div class="col-md-6">
+            <div class="card-classy p-4 bg-white h-100">
+                <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                    <span class="badge bg-light text-dark border font-monospace">TICKET #{{ c['id'] }}</span>
+                    <div>
+                        {% if c['status'] == 'Resolved' %}
+                        <span class="badge-classy-resolved">Resolved</span>
+                        {% elif c['status'] == 'In Progress' %}
+                        <span class="badge-classy-medium">In Progress</span>
+                        {% else %}
+                        <span class="badge bg-light text-secondary border">Pending</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <h5 class="fw-bold font-serif text-dark mb-1">{{ c['category'] }}</h5>
+                <div class="text-danger small mb-3">
+                    <i class="fa-solid fa-location-dot me-1"></i> {{ c['location'] }}
+                </div>
+
+                <div class="bg-light p-3 rounded small mb-3 border">
+                    <p class="mb-0 text-dark font-serif">"{{ c['description'] }}"</p>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center small text-secondary mt-auto pt-2 border-top">
+                    <div>
+                        Priority: 
+                        {% if c['priority'] == 'High' %}
+                        <strong class="text-danger">High</strong>
+                        {% elif c['priority'] == 'Medium' %}
+                        <strong class="text-warning-emphasis">Medium</strong>
+                        {% else %}
+                        <strong class="text-primary">Low</strong>
+                        {% endif %}
+                    </div>
+                    <a href="/track?id={{ c['id'] }}" class="btn btn-sm btn-outline-dark">
+                        Track Details
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="card-classy p-5 text-center text-muted bg-white">
+        <i class="fa-solid fa-clipboard-check fs-1 mb-3 text-muted"></i>
+        <h5 class="font-serif text-dark">No grievances logged under your name yet</h5>
+        <p class="small text-secondary mb-3">Have an issue on campus? Lodge a grievance and our AI triage engine will process it immediately.</p>
+        <a href="/complaint" class="btn-classy-primary text-decoration-none mx-auto">
+            Submit a Complaint
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

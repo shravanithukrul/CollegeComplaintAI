@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+
+{% block title %}CollegeCare AI • Campus Grievance & Governance Protocol{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Hero Editorial Header -->
+    <div class="row align-items-center g-5 mb-5 pb-lg-3">
+        <div class="col-lg-7">
+            <div class="d-inline-flex align-items-center gap-2 mb-3">
+                <span class="text-uppercase small fw-bold" style="color: var(--champagne); letter-spacing: 0.15em; font-size: 0.75rem;">
+                    Institutional Protocol
+                </span>
+                <span class="text-muted">•</span>
+                <span class="small text-secondary">Automated Facility Intelligence</span>
+            </div>
+
+            <h1 class="display-4 fw-bold mb-3" style="line-height: 1.2;">
+                AI-Driven Campus Facility Management & <span style="font-style: italic; color: var(--heritage-gold);">Priority Triage</span>
+            </h1>
+
+            <p class="lead text-secondary mb-4" style="font-size: 1.1rem; line-height: 1.8;">
+                A centralized, intelligent governance protocol designed to streamline student grievances. Leveraging Natural Language Processing to categorize reports, assess physical urgency, unify duplicate complaints, and audit chronic equipment failures.
+            </p>
+
+            <div class="d-flex flex-wrap gap-3 mb-5">
+                {% if session.get('user_id') %}
+                <a href="/complaint" class="btn-classy-primary text-decoration-none">
+                    <i class="fa-solid fa-file-signature"></i>
+                    <span>Submit Campus Report</span>
+                </a>
+                {% else %}
+                <a href="/login?next=/complaint" class="btn-classy-primary text-decoration-none">
+                    <i class="fa-solid fa-right-to-bracket"></i>
+                    <span>Sign In to Submit Report</span>
+                </a>
+                {% endif %}
+                <a href="/track" class="btn-classy-outline text-decoration-none">
+                    <i class="fa-solid fa-eye"></i>
+                    <span>View & Track Grievances</span>
+                </a>
+                <a href="/admin" class="btn-classy-outline text-decoration-none">
+                    <i class="fa-solid fa-table-columns"></i>
+                    <span>Administrative Board</span>
+                </a>
+            </div>
+
+            <!-- Architectural Metric Row -->
+            <div class="row g-3 pt-3 border-top">
+                <div class="col-6 col-sm-3">
+                    <div class="stat-caption">Total Logged</div>
+                    <div class="stat-number">{{ stats.total }}</div>
+                    <div class="small text-muted">Campus Tickets</div>
+                </div>
+                <div class="col-6 col-sm-3">
+                    <div class="stat-caption">Under Review</div>
+                    <div class="stat-number" style="color: var(--status-medium);">{{ stats.pending }}</div>
+                    <div class="small text-muted">Awaiting Action</div>
+                </div>
+                <div class="col-6 col-sm-3">
+                    <div class="stat-caption">Resolved</div>
+                    <div class="stat-number" style="color: var(--status-resolved);">{{ stats.resolved }}</div>
+                    <div class="small text-muted">Closed Cases</div>
+                </div>
+                <div class="col-6 col-sm-3">
+                    <div class="stat-caption">Urgent Hazard</div>
+                    <div class="stat-number" style="color: var(--status-urgent);">{{ stats.urgent }}</div>
+                    <div class="small text-muted">Priority Attention</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hero Right: Refined AI Inspection Card -->
+        <div class="col-lg-5">
+            <div class="card-classy p-4 bg-white">
+                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="crest-badge" style="width: 28px; height: 28px; font-size: 0.8rem;">
+                            <i class="fa-solid fa-scale-balanced"></i>
+                        </span>
+                        <span class="font-serif fw-bold text-dark small">AI Inspection Protocol</span>
+                    </div>
+                    <span class="badge-classy-category">Scikit-learn NLP</span>
+                </div>
+
+                <!-- Input Preview -->
+                <div class="p-3 bg-light rounded mb-3 border">
+                    <div class="d-flex justify-content-between text-muted small mb-1">
+                        <span class="text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.05em;">Student Grievance</span>
+                        <span class="badge bg-white text-dark border">Room 115</span>
+                    </div>
+                    <div class="small text-dark font-serif" style="font-size: 0.95rem;">
+                        “Projector is not turning on and display cable is damaged in Room 115.”
+                    </div>
+                </div>
+
+                <!-- AI Output Breakdown -->
+                <div class="d-flex flex-column gap-2 mb-3">
+                    <div class="d-flex align-items-center justify-content-between p-2 rounded bg-white border small">
+                        <span class="text-secondary"><i class="fa-solid fa-tag me-2 text-muted"></i> Category:</span>
+                        <span class="badge-classy-category">IT & Lab Facilities</span>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between p-2 rounded bg-white border small">
+                        <span class="text-secondary"><i class="fa-solid fa-shield-halved me-2 text-muted"></i> Urgency Assessment:</span>
+                        <span class="badge-classy-medium">Medium Priority</span>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between p-2 rounded bg-white border small">
+                        <span class="text-secondary"><i class="fa-solid fa-clone me-2 text-muted"></i> Duplicate Correlation:</span>
+                        <span class="badge-classy-duplicate"><i class="fa-solid fa-users"></i> 4 Reports Merged</span>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between p-2 rounded bg-white border small">
+                        <span class="text-secondary"><i class="fa-solid fa-arrows-rotate me-2 text-muted"></i> Chronic Recurrence:</span>
+                        <span class="badge-classy-recurring"><i class="fa-solid fa-triangle-exclamation"></i> Recurrence Flagged</span>
+                    </div>
+                </div>
+
+                <div class="p-2 px-3 rounded bg-light text-center small text-secondary border">
+                    Auto-Dispatched to <strong class="text-dark">IT Support & Computing Systems</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4 Core AI Pillars -->
+    <div class="mb-5 pt-4">
+        <div class="text-center mb-5">
+            <span class="stat-caption">Architectural Framework</span>
+            <h2 class="fw-bold mt-1">Four Core Intelligent Modules</h2>
+            <div style="width: 40px; height: 2px; background: var(--champagne); margin: 12px auto;"></div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="stat-box h-100">
+                    <span class="stat-caption">Module 01</span>
+                    <h5 class="font-serif fw-bold mt-2 mb-2">NLP Classification</h5>
+                    <p class="text-secondary small mb-0">
+                        Categorizes reports into IT, Electrical, Sanitation, Water, and Infrastructure domains using supervised machine learning algorithms.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3">
+                <div class="stat-box stat-gold h-100">
+                    <span class="stat-caption">Module 02</span>
+                    <h5 class="font-serif fw-bold mt-2 mb-2">Priority Grading</h5>
+                    <p class="text-secondary small mb-0">
+                        Evaluates safety risks, structural failure, and campus disruptions to grade tickets as High, Medium, or Low urgency.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3">
+                <div class="stat-box h-100">
+                    <span class="stat-caption">Module 03</span>
+                    <h5 class="font-serif fw-bold mt-2 mb-2">Duplicate Merging</h5>
+                    <p class="text-secondary small mb-0">
+                        Computes Cosine Similarity across unresolved records, uniting duplicate reports from multiple students into a consolidated case.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3">
+                <div class="stat-box stat-crimson h-100">
+                    <span class="stat-caption">Module 04</span>
+                    <h5 class="font-serif fw-bold mt-2 mb-2">Recurrence Audit</h5>
+                    <p class="text-secondary small mb-0">
+                        Identifies chronic facility breakdowns at specific campus locations to recommend permanent capital replacement.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Workflow Section -->
+    <div class="card-classy p-4 p-md-5 bg-white text-center">
+        <span class="stat-caption">Operational Flow</span>
+        <h3 class="fw-bold mt-1 mb-4">Grievance Resolution Lifecycle</h3>
+        
+        <div class="row g-4">
+            <div class="col-6 col-md-3">
+                <div class="step-node-circle">1</div>
+                <h6 class="font-serif fw-bold mb-1">Submission</h6>
+                <p class="text-muted small mb-0">Student reports problem with location & photo</p>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="step-node-circle">2</div>
+                <h6 class="font-serif fw-bold mb-1">AI Triage</h6>
+                <p class="text-muted small mb-0">NLP classifies category & grades urgency</p>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="step-node-circle">3</div>
+                <h6 class="font-serif fw-bold mb-1">Department Dispatch</h6>
+                <p class="text-muted small mb-0">Action routed to responsible administrative desk</p>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="step-node-circle">4</div>
+                <h6 class="font-serif fw-bold mb-1">Closure & Log</h6>
+                <p class="text-muted small mb-0">Resolution verified and logged in campus records</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

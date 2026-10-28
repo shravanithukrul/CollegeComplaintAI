@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+
+{% block title %}Track Grievance • CollegeCare AI{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Search Box -->
+            <div class="card-classy p-4 p-md-5 mb-4 text-center bg-white">
+                <span class="stat-caption">Inquiry Registry</span>
+                <h3 class="fw-bold mt-1 mb-2">Track Campus Grievance</h3>
+                <p class="text-secondary small mb-3">
+                    Guests and students can track any grievance by its <strong>Complaint Reference ID</strong>.
+                </p>
+                <div class="alert alert-light border small text-muted py-2 px-3 mx-auto mb-4" style="max-width: 540px;">
+                    <i class="fa-solid fa-shield-halved text-success me-1"></i>
+                    <strong>Privacy Guarantee:</strong> Student names & IDs are confidential and only visible to the person who submitted the complaint and campus administrators.
+                </div>
+
+                <form method="GET" action="/track" class="row g-2 justify-content-center">
+                    <div class="col-md-8">
+                        <input type="text" name="id" class="form-control" 
+                               placeholder="Enter Ticket ID (e.g. 1, 2, 3...) or Student Name" 
+                               value="{{ search_query or '' }}" required>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn-classy-primary w-100 py-2">
+                            <span>Inspect Status</span>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Sample Demo Pills -->
+                <div class="d-flex justify-content-center flex-wrap gap-2 mt-3 pt-3 border-top">
+                    <span class="small text-muted me-1" style="font-size: 0.75rem;">Sample Records:</span>
+                    <a href="/track?id=3" class="pill-chip text-decoration-none">Ticket #3 (Room 115)</a>
+                    <a href="/track?id=4" class="pill-chip text-decoration-none">Ticket #4 (Sparks)</a>
+                    <a href="/track?id=5" class="pill-chip text-decoration-none">Ticket #5 (Water Leak)</a>
+                </div>
+            </div>
+
+            <!-- Search Results -->
+            {% if searched %}
+                {% if complaints %}
+                    {% for c in complaints %}
+                    <div class="card-classy p-4 mb-4 bg-white">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center border-bottom pb-3 mb-3 gap-2">
+                            <div>
+                                <span class="badge bg-light text-dark border font-monospace mb-1">RECORD #{{ c['id'] }}</span>
+                                <h5 class="fw-bold font-serif text-dark mb-0">{{ c['category'] }}</h5>
+                                <span class="text-muted small">
+                                    <i class="fa-solid fa-location-dot text-danger me-1"></i> {{ c['location'] }}
+                                </span>
+                            </div>
+                            <div class="text-end">
+                                {% if c['status'] == 'Resolved' %}
+                                <span class="badge-classy-resolved">
+                                    <i class="fa-solid fa-check-double me-1"></i> Resolved
+                                </span>
+                                {% elif c['status'] == 'In Progress' %}
+                                <span class="badge-classy-medium">
+                                    <i class="fa-solid fa-screwdriver-wrench me-1"></i> In Progress
+                                </span>
+                                {% else %}
+                                <span class="badge-classy-low">
+                                    <i class="fa-solid fa-clock me-1"></i> Pending Review
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Classy 3-Step Stepper -->
+                        <div class="timeline-stepper">
+                            <div class="step-node completed">
+                                <div class="step-node-circle">I</div>
+                                <div class="step-node-label">Lodged</div>
+                            </div>
+                            <div class="step-node {% if c['status'] in ['In Progress', 'Resolved'] %}completed{% elif c['status'] == 'Pending' %}active{% endif %}">
+                                <div class="step-node-circle">II</div>
+                                <div class="step-node-label">Assigned</div>
+                            </div>
+                            <div class="step-node {% if c['status'] == 'Resolved' %}completed{% endif %}">
+                                <div class="step-node-circle">III</div>
+                                <div class="step-node-label">Concluded</div>
+                            </div>
+                        </div>
+
+                        <!-- Statement Card -->
+                        <div class="bg-light p-3 rounded mb-3 small border">
+                            <span class="stat-caption d-block mb-1">Grievance Statement:</span>
+                            <div class="bg-white p-3 rounded border text-dark font-serif" style="font-size: 0.95rem;">
+                                {{ c['description'] }}
+                            </div>
+
+                            <div class="row g-2 pt-3">
+                                <div class="col-sm-6">
+                                    <span class="text-muted d-block" style="font-size: 0.75rem;">Assigned Department:</span>
+                                    <strong class="text-dark">{{ c['department'] or 'General Administration' }}</strong>
+                                </div>
+                                <div class="col-sm-6">
+                                    <span class="text-muted d-block" style="font-size: 0.75rem;">Assessed Urgency:</span>
+                                    <div>
+                                        {% if c['priority'] == 'High' %}
+                                        <span class="badge-classy-urgent">High Priority</span>
+                                        {% elif c['priority'] == 'Medium' %}
+                                        <span class="badge-classy-medium">Medium Priority</span>
+                                        {% else %}
+                                        <span class="badge-classy-low">Low Priority</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {% if c['admin_remarks'] %}
+                            <div class="mt-3 pt-2 border-top">
+                                <span class="stat-caption d-block mb-1">Administrative Resolution Memo:</span>
+                                <div class="p-2 bg-white text-dark rounded border">
+                                    <i class="fa-solid fa-comment-dots text-secondary me-1"></i> {{ c['admin_remarks'] }}
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if c['image_path'] %}
+                            <div class="mt-3 pt-2 border-top">
+                                <span class="stat-caption d-block mb-1">Attached Exhibit:</span>
+                                <img src="{{ url_for('static', filename='uploads/' + c['image_path']) }}" class="img-thumbnail" style="max-height: 140px;" alt="Complaint photo">
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Privacy Protected Footer -->
+                        <div class="d-flex justify-content-between align-items-center text-muted small" style="font-size: 0.75rem;">
+                            <div>
+                                {% if c['is_identity_visible'] %}
+                                <i class="fa-solid fa-user-check text-success me-1"></i> Logged by: <strong class="text-dark">{{ c['name'] }}</strong>
+                                {% else %}
+                                <span class="badge bg-light text-muted border">
+                                    <i class="fa-solid fa-user-shield text-warning me-1"></i> Student Identity Protected
+                                </span>
+                                <span class="text-muted ms-1 d-none d-sm-inline">(Only visible to filer & admin)</span>
+                                {% endif %}
+                            </div>
+                            <span>Recorded: {{ c['created_at'] }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="card-classy p-5 text-center text-muted bg-white mb-4">
+                        <i class="fa-solid fa-folder-closed fs-1 mb-3 text-muted"></i>
+                        <h5 class="font-serif text-dark">No records found for “{{ search_query }}”</h5>
+                        <p class="small mb-0 text-secondary">Verify the ticket ID number or log in to search by name.</p>
+                    </div>
+                {% endif %}
+            {% endif %}
+
+            <!-- Public Facility Board (Guests Can Freely View Campus Issues) -->
+            <div class="mt-4 pt-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <span class="stat-caption">Transparency Board</span>
+                        <h5 class="fw-bold font-serif text-dark mb-0">Active Campus Grievances (Public View)</h5>
+                    </div>
+                    <span class="badge bg-light text-muted border small">
+                        <i class="fa-solid fa-eye me-1 text-primary"></i> Guest Visible
+                    </span>
+                </div>
+
+                <div class="row g-3">
+                    {% for r in recent_complaints %}
+                    <div class="col-md-6">
+                        <div class="card-classy p-3 bg-white h-100 border">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="badge bg-light text-dark border font-monospace" style="font-size: 0.7rem;">TICKET #{{ r['id'] }}</span>
+                                <div>
+                                    {% if r['status'] == 'Resolved' %}
+                                    <span class="badge-classy-resolved" style="font-size: 0.68rem;">Resolved</span>
+                                    {% elif r['status'] == 'In Progress' %}
+                                    <span class="badge-classy-medium" style="font-size: 0.68rem;">In Progress</span>
+                                    {% else %}
+                                    <span class="badge bg-light text-secondary border" style="font-size: 0.68rem;">Pending</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <strong class="text-dark font-serif d-block" style="font-size: 0.9rem;">{{ r['category'] }}</strong>
+                            <div class="text-danger small mb-2" style="font-size: 0.78rem;">
+                                <i class="fa-solid fa-location-dot me-1"></i> {{ r['location'] }}
+                            </div>
+                            <p class="small text-secondary text-truncate mb-2" title="{{ r['description'] }}" style="font-size: 0.8rem;">
+                                {{ r['description'] }}
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center pt-2 border-top mt-auto" style="font-size: 0.72rem;">
+                                <span class="text-muted"><i class="fa-solid fa-lock text-warning me-1"></i> {{ r['name'] }}</span>
+                                <a href="/track?id={{ r['id'] }}" class="text-dark fw-bold text-decoration-none">View Status &rarr;</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}Grievance Lodged • CollegeCare AI{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="card-classy p-4 p-md-5 bg-white text-center">
+                <div class="mb-3">
+                    <div class="crest-badge mx-auto shadow-sm" style="width: 64px; height: 64px; font-size: 1.6rem;">
+                        <i class="fa-solid fa-stamp"></i>
+                    </div>
+                </div>
+                
+                <span class="stat-caption">Institutional Record</span>
+                <h3 class="fw-bold text-dark mt-1 mb-2">Grievance Registered</h3>
+                <p class="text-secondary small mb-4">
+                    Your campus grievance has been processed by the automated triage engine and recorded in the institutional register.
+                </p>
+
+                <!-- Ticket Certificate Card -->
+                <div class="p-4 mb-4 text-start bg-light rounded border">
+                    <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
+                        <div>
+                            <span class="stat-caption d-block">Complaint Reference</span>
+                            <div class="h4 fw-bold font-serif text-dark mb-0 font-monospace">#{{ complaint.id }}</div>
+                        </div>
+                        <div>
+                            {% if complaint.priority == 'High' %}
+                            <span class="badge-classy-urgent">High Priority</span>
+                            {% elif complaint.priority == 'Medium' %}
+                            <span class="badge-classy-medium">Medium Priority</span>
+                            {% else %}
+                            <span class="badge-classy-low">Low Priority</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row g-3 small">
+                        <div class="col-sm-6">
+                            <span class="text-muted d-block" style="font-size: 0.75rem;">Filed By:</span>
+                            <strong class="text-dark">{{ complaint.name }}</strong>
+                        </div>
+                        <div class="col-sm-6">
+                            <span class="text-muted d-block" style="font-size: 0.75rem;">Designated Location:</span>
+                            <strong class="text-dark"><i class="fa-solid fa-location-dot me-1 text-danger"></i> {{ complaint.location }}</strong>
+                        </div>
+                        <div class="col-sm-6">
+                            <span class="text-muted d-block" style="font-size: 0.75rem;">AI Classification:</span>
+                            <span class="badge-classy-category">{{ complaint.category }}</span>
+                        </div>
+                        <div class="col-sm-6">
+                            <span class="text-muted d-block" style="font-size: 0.75rem;">Assigned Department:</span>
+                            <strong class="text-dark">{{ complaint.department }}</strong>
+                        </div>
+                        <div class="col-12">
+                            <span class="text-muted d-block" style="font-size: 0.75rem;">Statement:</span>
+                            <div class="bg-white p-3 rounded border mt-1 text-dark font-serif" style="font-size: 0.95rem;">
+                                {{ complaint.description }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Duplicate Linkage Alert -->
+                {% if complaint.similar_info %}
+                <div class="alert alert-light text-start small mb-3 border">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <i class="fa-solid fa-layer-group text-dark"></i>
+                        <strong class="text-dark">Duplicate Correlation Merged:</strong>
+                    </div>
+                    <p class="mb-2 text-secondary">
+                        Unified with ongoing case <strong>#{{ complaint.similar_info.matched_id }}</strong> (<em>"{{ complaint.similar_info.matched_description }}"</em>).
+                    </p>
+                    <span class="badge bg-dark text-white px-3 py-1">
+                        <i class="fa-solid fa-users me-1"></i> {{ complaint.related_count }} Correlated Reports Consolidated
+                    </span>
+                </div>
+                {% endif %}
+
+                <!-- Recurring Issue Alert -->
+                {% if complaint.is_recurring %}
+                <div class="alert alert-danger text-start small mb-4 border-danger-subtle">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <i class="fa-solid fa-triangle-exclamation text-danger"></i>
+                        <strong class="text-danger">⚠️ Chronic Failure Audit Alert:</strong>
+                    </div>
+                    <p class="mb-0 text-danger-emphasis">
+                        {{ recurring_message }} The facility board has highlighted this location for permanent capital replacement.
+                    </p>
+                </div>
+                {% endif %}
+
+                <!-- Actions -->
+                <div class="d-flex flex-wrap gap-2 justify-content-center">
+                    <a href="/track?id={{ complaint.id }}" class="btn-classy-primary text-decoration-none">
+                        <i class="fa-solid fa-magnifying-glass me-1"></i> Inspect Ticket Progress
+                    </a>
+                    <a href="/complaint" class="btn-classy-outline text-decoration-none">
+                        <i class="fa-solid fa-pen-to-square me-1"></i> File Another Report
+                    </a>
+                    <a href="/" class="btn-classy-outline text-decoration-none">
+                        <i class="fa-solid fa-landmark me-1"></i> Protocol Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
