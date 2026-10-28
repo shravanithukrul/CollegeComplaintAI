@@ -1,0 +1,21 @@
+{
+  "name": "collegecare-ai",
+  "version": "1.0.0",
+  "description": "AI-Based College Complaint Management and Priority System",
+  "scripts": {
+    "dev": "python app.py",
+    "full-dev": "python app.py",
+    "full:dev": "python app.py",
+    "start": "python app.py",
+    "serve": "python app.py"
+  },
+  "keywords": [
+    "ai",
+    "college",
+    "complaint",
+    "priority",
+    "flask"
+  ],
+  "author": "CollegeCare AI",
+  "license": "MIT"
+}
