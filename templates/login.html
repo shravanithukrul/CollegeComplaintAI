@@ -155,44 +155,35 @@
     // -------------------------------------------------------------
     // Firebase Google Sign-In Integration
     // -------------------------------------------------------------
-    // Replace with your Firebase Project Configuration from console.firebase.google.com
     const firebaseConfig = {
-        apiKey: "YOUR_FIREBASE_API_KEY",
+        apiKey: "AIzaSyCYp46DthIplxgAIkWW4Ko3pBqlGHLbNBY",
         authDomain: "collegecare-ai.firebaseapp.com",
         projectId: "collegecare-ai",
-        storageBucket: "collegecare-ai.appspot.com",
-        messagingSenderId: "1234567890",
-        appId: "1:1234567890:web:abcdef123456"
+        storageBucket: "collegecare-ai.firebasestorage.app",
+        messagingSenderId: "504142719862",
+        appId: "1:504142719862:web:f115fc763697614ad5a857",
+        measurementId: "G-JNCT5VNYLG"
     };
 
-    let firebaseInitialized = false;
-    try {
-        if (firebaseConfig.apiKey !== "YOUR_FIREBASE_API_KEY") {
-            firebase.initializeApp(firebaseConfig);
-            firebaseInitialized = true;
-        }
-    } catch(e) {
-        console.warn("Firebase initialization waiting for custom config:", e);
-    }
+    // Initialize Firebase SDK
+    firebase.initializeApp(firebaseConfig);
 
     function handleGoogleSignIn() {
         const statusEl = document.getElementById('googleAuthStatus');
         const nextUrl = new URLSearchParams(window.location.search).get('next');
-
-        if (!firebaseInitialized) {
-            // Friendly demo mode prompt if user hasn't pasted API keys yet
-            const userEmail = prompt("Firebase Google Sign-In Setup Mode:\nEnter your Google/Gmail address to test Google Authentication:", "student.campus@gmail.com");
-            if (userEmail && userEmail.includes('@')) {
-                const userName = userEmail.split('@')[0].replace('.', ' ');
-                sendGoogleAuthToServer(userEmail, userName, nextUrl);
-            }
-            return;
-        }
-
         const provider = new firebase.auth.GoogleAuthProvider();
+
         firebase.auth().signInWithPopup(provider)
             .then(result => {
                 const user = result.user;
+                sendGoogleAuthToServer(user.email, user.displayName, nextUrl);
+            })
+            .catch(error => {
+                console.error("Firebase Sign-In Error:", error);
+                statusEl.textContent = error.message;
+                statusEl.classList.remove('d-none');
+            });
+    }
                 sendGoogleAuthToServer(user.email, user.displayName, nextUrl);
             })
             .catch(error => {
