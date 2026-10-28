@@ -6,6 +6,9 @@ Flask Application Controller with Role-Based Authentication
 import os
 import sqlite3
 import time
+import json
+import urllib.request
+import threading
 from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, jsonify, session, flash
 from werkzeug.utils import secure_filename
@@ -25,6 +28,65 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 DB_PATH = "complaints.db"
+FIREBASE_PROJECT_ID = "collegecare-ai"
+
+
+def format_firestore_fields(data: dict) -> dict:
+    fields = {}
+    for k, v in data.items():
+        if v is None:
+            fields[k] = {"nullValue": None}
+        elif isinstance(v, bool):
+            fields[k] = {"booleanValue": v}
+        elif isinstance(v, int):
+            fields[k] = {"integerValue": str(v)}
+        elif isinstance(v, float):
+            fields[k] = {"doubleValue": v}
+        else:
+            fields[k] = {"stringValue": str(v)}
+    return fields
+
+
+def sync_to_firestore_async(complaint_dict: dict):
+    """Syncs a complaint document to Firebase Cloud Firestore in a non-blocking background thread."""
+    def _worker():
+        try:
+            cid = complaint_dict.get("id")
+            doc_id = f"ticket_{cid}" if cid else f"ticket_{int(time.time())}"
+            url = f"https://firestore.googleapis.com/v1/projects/{FIREBASE_PROJECT_ID}/databases/(default)/documents/complaints/{doc_id}"
+
+            payload_data = {
+                "id": complaint_dict.get("id", 0),
+                "name": complaint_dict.get("name", "Student"),
+                "category": complaint_dict.get("category", ""),
+                "priority": complaint_dict.get("priority", "Medium"),
+                "priority_reason": complaint_dict.get("priority_reason", ""),
+                "location": complaint_dict.get("location", ""),
+                "description": complaint_dict.get("description", ""),
+                "department": complaint_dict.get("department", ""),
+                "status": complaint_dict.get("status", "Pending"),
+                "admin_remarks": complaint_dict.get("admin_remarks", "") or "",
+                "image_path": complaint_dict.get("image_path", "") or "",
+                "is_recurring": bool(complaint_dict.get("is_recurring", False)),
+                "created_at": complaint_dict.get("created_at") or time.strftime("%Y-%m-%d %H:%M:%S")
+            }
+
+            payload = json.dumps({"fields": format_firestore_fields(payload_data)}).encode("utf-8")
+            req = urllib.request.Request(
+                url,
+                data=payload,
+                headers={"Content-Type": "application/json"},
+                method="PATCH"
+            )
+            with urllib.request.urlopen(req, timeout=5) as response:
+                print(f"[Firebase Firestore Sync]: Successfully stored ticket #{cid} in Firestore.")
+        except urllib.error.HTTPError as e:
+            err_body = e.read().decode("utf-8", errors="ignore")
+            print(f"[Firebase Firestore Sync HTTP {e.code}]: {err_body}")
+        except Exception as e:
+            print(f"[Firebase Firestore Sync Notice]: {e}")
+
+    threading.Thread(target=_worker, daemon=True).start()
 
 
 def allowed_file(filename: str) -> bool:
@@ -518,13 +580,19 @@ def complaint():
             "name": name,
             "category": category,
             "priority": priority,
+            "priority_reason": priority_reason,
             "location": location,
             "description": description,
             "department": department,
+            "status": "Pending",
+            "image_path": image_filename,
             "similar_info": similar_match,
             "related_count": (parent_info["related_count"] if similar_match and parent_info else 1),
             "is_recurring": is_recurring
         }
+
+        # Asynchronously store in Firebase Cloud Firestore
+        sync_to_firestore_async(complaint_data)
 
         return render_template(
             "complaint_success.html",
@@ -665,7 +733,26 @@ def update_status(complaint_id):
         """, (status, department, priority, remarks, complaint_id))
         conn.commit()
 
+        # Retrieve updated record and synchronize with Firebase Cloud Firestore
+        updated_row = conn.execute("SELECT * FROM complaints WHERE id = ?", (complaint_id,)).fetchone()
+        if updated_row:
+            sync_to_firestore_async(dict(updated_row))
+
     flash(f"Ticket #{complaint_id} status updated to '{status}'.", "success")
+    return redirect(url_for("admin"))
+
+
+@app.route("/admin/sync_firebase", methods=["POST"])
+@admin_required
+def sync_firebase():
+    """Bulk synchronizes all existing complaints from SQLite into Firebase Cloud Firestore."""
+    with get_db_connection() as conn:
+        rows = conn.execute("SELECT * FROM complaints").fetchall()
+        count = len(rows)
+        for r in rows:
+            sync_to_firestore_async(dict(r))
+
+    flash(f"Firestore Sync Dispatched: Pushing {count} tickets to Firebase Cloud Firestore.", "success")
     return redirect(url_for("admin"))
 
 
